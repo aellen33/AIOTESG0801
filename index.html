@@ -1,21 +1,27 @@
-<html><head><base href="https://websimcreationengine.com/linear-regression-control-panel/">
+<html><head><base href="https://websimcreationengine.com/tech-linear-regression-advanced-v2/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Linear Regression Control Panel</title>
+<title>Advanced Tech-Style Linear Regression Control Panel</title>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
     body {
-        font-family: Arial, sans-serif;
+        font-family: 'Orbitron', sans-serif;
         margin: 0;
         padding: 0;
         display: flex;
         height: 100vh;
+        background-color: #050510;
+        color: #00ffff;
     }
     #control-panel {
         width: 300px;
         padding: 20px;
-        background-color: #f0f0f0;
-        border-right: 1px solid #ccc;
+        background-color: #0a0a20;
+        border-right: 1px solid #1a1a4a;
+        box-shadow: 2px 0 10px rgba(0,255,255,0.1);
+        overflow-y: auto;
     }
     #plot-container {
         flex-grow: 1;
@@ -27,19 +33,65 @@
     .slider-container label {
         display: block;
         margin-bottom: 5px;
+        font-size: 14px;
+        color: #00ffff;
     }
     input[type="range"] {
         width: 100%;
+        -webkit-appearance: none;
+        background: #1a1a4a;
+        outline: none;
+        border-radius: 15px;
+        height: 5px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 15px;
+        height: 15px;
+        background: #00ffff;
+        cursor: pointer;
+        border-radius: 50%;
+        box-shadow: 0 0 5px #00ffff;
     }
     #equation {
         font-weight: bold;
         margin-top: 20px;
+        padding: 10px;
+        background-color: #1a1a4a;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 16px;
+        color: #ff00ff;
+        text-shadow: 0 0 5px rgba(255,0,255,0.5);
+    }
+    h2 {
+        color: #ff00ff;
+        text-align: center;
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(255,0,255,0.5);
+    }
+    .color-picker {
+        width: 100%;
+        height: 30px;
+        border: none;
+        border-radius: 5px;
+        background-color: #1a1a4a;
+    }
+    select {
+        width: 100%;
+        padding: 5px;
+        background-color: #1a1a4a;
+        color: #00ffff;
+        border: none;
+        border-radius: 5px;
+        font-family: 'Orbitron', sans-serif;
     }
 </style>
 </head>
 <body>
 <div id="control-panel">
-    <h2>Linear Regression Control</h2>
+    <h2>Regression Control</h2>
     <div class="slider-container">
         <label for="slope">Slope (m): <span id="slope-value">9.89</span></label>
         <input type="range" id="slope" min="-20" max="20" step="0.01" value="9.89">
@@ -56,6 +108,28 @@
         <label for="num-points">Number of points: <span id="num-points-value">100</span></label>
         <input type="range" id="num-points" min="10" max="500" step="10" value="100">
     </div>
+    <div class="slider-container">
+        <label for="point-size">Point Size: <span id="point-size-value">8</span></label>
+        <input type="range" id="point-size" min="1" max="20" step="1" value="8">
+    </div>
+    <div class="slider-container">
+        <label for="point-color">Point Color:</label>
+        <input type="color" id="point-color" class="color-picker" value="#00ffff">
+    </div>
+    <div class="slider-container">
+        <label for="line-color">Line Color:</label>
+        <input type="color" id="line-color" class="color-picker" value="#ff00ff">
+    </div>
+    <div class="slider-container">
+        <label for="point-shape">Point Shape:</label>
+        <select id="point-shape">
+            <option value="circle">Circle</option>
+            <option value="square">Square</option>
+            <option value="diamond">Diamond</option>
+            <option value="cross">Cross</option>
+            <option value="x">X</option>
+        </select>
+    </div>
     <div id="equation">Y = 9.89X + 44.40</div>
 </div>
 <div id="plot-container">
@@ -67,6 +141,10 @@
     const intercept = document.getElementById('intercept');
     const noise = document.getElementById('noise');
     const numPoints = document.getElementById('num-points');
+    const pointSize = document.getElementById('point-size');
+    const pointColor = document.getElementById('point-color');
+    const lineColor = document.getElementById('line-color');
+    const pointShape = document.getElementById('point-shape');
 
     function updateValue(id) {
         document.getElementById(`${id}-value`).textContent = document.getElementById(id).value;
@@ -92,13 +170,24 @@
 
     function plotData() {
         const {x, y} = generateData();
+        const pointColorValue = pointColor.value;
+        const lineColorValue = lineColor.value;
 
         const trace = {
             x: x,
             y: y,
             mode: 'markers',
             type: 'scatter',
-            name: 'Data'
+            name: 'Data',
+            marker: {
+                color: pointColorValue,
+                size: parseInt(pointSize.value),
+                symbol: pointShape.value,
+                line: {
+                    color: chroma(pointColorValue).brighten(2),
+                    width: 1
+                }
+            }
         };
 
         const line = {
@@ -107,21 +196,52 @@
             mode: 'lines',
             type: 'scatter',
             name: 'Regression Line',
-            line: {color: 'red'}
+            line: {color: lineColorValue, width: 3}
         };
 
         const layout = {
-            title: 'Simple Linear Regression',
-            xaxis: {title: 'X', range: [-100, 100]},
-            yaxis: {title: 'Y', range: [-1000, 1000]}
+            title: {
+                text: 'Tech-Style Linear Regression',
+                font: {
+                    color: '#00ffff',
+                    size: 24
+                }
+            },
+            plot_bgcolor: '#0a0a20',
+            paper_bgcolor: '#050510',
+            xaxis: {
+                title: 'X',
+                range: [-100, 100],
+                gridcolor: '#1a1a4a',
+                zerolinecolor: '#00ffff',
+                tickfont: {color: '#00ffff'}
+            },
+            yaxis: {
+                title: 'Y',
+                range: [-1000, 1000],
+                gridcolor: '#1a1a4a',
+                zerolinecolor: '#00ffff',
+                tickfont: {color: '#00ffff'}
+            },
+            legend: {font: {color: '#00ffff'}},
+            margin: {t: 50, b: 50, l: 50, r: 50}
         };
 
         Plotly.newPlot('plot', [trace, line], layout);
+
+        // Add blinking effect only to data points
+        let visible = true;
+        setInterval(() => {
+            visible = !visible;
+            Plotly.restyle('plot', {'marker.opacity': visible ? 1 : 0}, [0]);
+        }, 500);
     }
 
-    [slope, intercept, noise, numPoints].forEach(el => {
+    [slope, intercept, noise, numPoints, pointSize, pointColor, lineColor, pointShape].forEach(el => {
         el.addEventListener('input', () => {
-            updateValue(el.id);
+            if (el.id !== 'pointColor' && el.id !== 'lineColor' && el.id !== 'pointShape') {
+                updateValue(el.id);
+            }
             updateEquation();
             plotData();
         });
