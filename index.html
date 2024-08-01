@@ -1,7 +1,7 @@
-<html><head><base href="https://websimcreationengine.com/linear-regression-control/">
+<html><head><base href="https://websimcreationengine.com/linear-regression-control-panel/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Interactive Linear Regression</title>
+<title>Linear Regression Control Panel</title>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <style>
     body {
@@ -21,91 +21,114 @@
         flex-grow: 1;
         padding: 20px;
     }
-    input, button {
-        width: 100%;
-        margin-bottom: 10px;
-        padding: 5px;
+    .slider-container {
+        margin-bottom: 20px;
     }
-    label {
+    .slider-container label {
         display: block;
         margin-bottom: 5px;
+    }
+    input[type="range"] {
+        width: 100%;
+    }
+    #equation {
+        font-weight: bold;
+        margin-top: 20px;
     }
 </style>
 </head>
 <body>
 <div id="control-panel">
-    <h2>Linear Regression Control Panel</h2>
-    <label for="slope">Slope (m):</label>
-    <input type="number" id="slope" value="9.89" step="0.01">
-    
-    <label for="intercept">Y-intercept (b):</label>
-    <input type="number" id="intercept" value="44.40" step="0.01">
-    
-    <label for="num-points">Number of points:</label>
-    <input type="number" id="num-points" value="100" min="10" max="500">
-    
-    <label for="noise">Noise level:</label>
-    <input type="range" id="noise" min="0" max="100" value="20">
-    
-    <button onclick="updatePlot()">Update Plot</button>
+    <h2>Linear Regression Control</h2>
+    <div class="slider-container">
+        <label for="slope">Slope (m): <span id="slope-value">9.89</span></label>
+        <input type="range" id="slope" min="-20" max="20" step="0.01" value="9.89">
+    </div>
+    <div class="slider-container">
+        <label for="intercept">Y-intercept (b): <span id="intercept-value">44.40</span></label>
+        <input type="range" id="intercept" min="-100" max="100" step="0.1" value="44.40">
+    </div>
+    <div class="slider-container">
+        <label for="noise">Noise: <span id="noise-value">20</span></label>
+        <input type="range" id="noise" min="0" max="100" step="1" value="20">
+    </div>
+    <div class="slider-container">
+        <label for="num-points">Number of points: <span id="num-points-value">100</span></label>
+        <input type="range" id="num-points" min="10" max="500" step="10" value="100">
+    </div>
+    <div id="equation">Y = 9.89X + 44.40</div>
 </div>
 <div id="plot-container">
     <div id="plot"></div>
 </div>
 
 <script>
-function generateData(slope, intercept, numPoints, noise) {
-    let x = [];
-    let y = [];
-    for (let i = 0; i < numPoints; i++) {
-        let xi = Math.random() * 200 - 100;
-        let yi = slope * xi + intercept + (Math.random() - 0.5) * noise;
-        x.push(xi);
-        y.push(yi);
+    const slope = document.getElementById('slope');
+    const intercept = document.getElementById('intercept');
+    const noise = document.getElementById('noise');
+    const numPoints = document.getElementById('num-points');
+
+    function updateValue(id) {
+        document.getElementById(`${id}-value`).textContent = document.getElementById(id).value;
     }
-    return [x, y];
-}
 
-function updatePlot() {
-    let slope = parseFloat(document.getElementById('slope').value);
-    let intercept = parseFloat(document.getElementById('intercept').value);
-    let numPoints = parseInt(document.getElementById('num-points').value);
-    let noise = parseFloat(document.getElementById('noise').value) * 10;
+    function updateEquation() {
+        const m = parseFloat(slope.value).toFixed(2);
+        const b = parseFloat(intercept.value).toFixed(2);
+        document.getElementById('equation').textContent = `Y = ${m}X + ${b}`;
+    }
 
-    let [x, y] = generateData(slope, intercept, numPoints, noise);
+    function generateData() {
+        const m = parseFloat(slope.value);
+        const b = parseFloat(intercept.value);
+        const noiseLevel = parseFloat(noise.value);
+        const n = parseInt(numPoints.value);
 
-    let trace1 = {
-        x: x,
-        y: y,
-        mode: 'markers',
-        type: 'scatter',
-        name: 'Data'
-    };
+        const x = Array.from({length: n}, () => Math.random() * 200 - 100);
+        const y = x.map(xi => m * xi + b + (Math.random() - 0.5) * noiseLevel * 20);
 
-    let x_line = [-100, 100];
-    let y_line = x_line.map(x => slope * x + intercept);
+        return {x, y};
+    }
 
-    let trace2 = {
-        x: x_line,
-        y: y_line,
-        mode: 'lines',
-        type: 'scatter',
-        name: 'Regression Line',
-        line: {color: 'red'}
-    };
+    function plotData() {
+        const {x, y} = generateData();
 
-    let layout = {
-        title: 'Simple Linear Regression',
-        xaxis: {title: 'X', range: [-100, 100]},
-        yaxis: {title: 'Y'},
-        showlegend: true
-    };
+        const trace = {
+            x: x,
+            y: y,
+            mode: 'markers',
+            type: 'scatter',
+            name: 'Data'
+        };
 
-    Plotly.newPlot('plot', [trace1, trace2], layout);
-}
+        const line = {
+            x: [-100, 100],
+            y: [slope.value * -100 + parseFloat(intercept.value), slope.value * 100 + parseFloat(intercept.value)],
+            mode: 'lines',
+            type: 'scatter',
+            name: 'Regression Line',
+            line: {color: 'red'}
+        };
 
-// Initial plot
-updatePlot();
+        const layout = {
+            title: 'Simple Linear Regression',
+            xaxis: {title: 'X', range: [-100, 100]},
+            yaxis: {title: 'Y', range: [-1000, 1000]}
+        };
+
+        Plotly.newPlot('plot', [trace, line], layout);
+    }
+
+    [slope, intercept, noise, numPoints].forEach(el => {
+        el.addEventListener('input', () => {
+            updateValue(el.id);
+            updateEquation();
+            plotData();
+        });
+    });
+
+    updateEquation();
+    plotData();
 </script>
 </body>
 </html>
