@@ -1,0 +1,111 @@
+<html><head><base href="https://websimcreationengine.com/linear-regression-control/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Linear Regression</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        height: 100vh;
+    }
+    #control-panel {
+        width: 300px;
+        padding: 20px;
+        background-color: #f0f0f0;
+        border-right: 1px solid #ccc;
+    }
+    #plot-container {
+        flex-grow: 1;
+        padding: 20px;
+    }
+    input, button {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 5px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+</style>
+</head>
+<body>
+<div id="control-panel">
+    <h2>Linear Regression Control Panel</h2>
+    <label for="slope">Slope (m):</label>
+    <input type="number" id="slope" value="9.89" step="0.01">
+    
+    <label for="intercept">Y-intercept (b):</label>
+    <input type="number" id="intercept" value="44.40" step="0.01">
+    
+    <label for="num-points">Number of points:</label>
+    <input type="number" id="num-points" value="100" min="10" max="500">
+    
+    <label for="noise">Noise level:</label>
+    <input type="range" id="noise" min="0" max="100" value="20">
+    
+    <button onclick="updatePlot()">Update Plot</button>
+</div>
+<div id="plot-container">
+    <div id="plot"></div>
+</div>
+
+<script>
+function generateData(slope, intercept, numPoints, noise) {
+    let x = [];
+    let y = [];
+    for (let i = 0; i < numPoints; i++) {
+        let xi = Math.random() * 200 - 100;
+        let yi = slope * xi + intercept + (Math.random() - 0.5) * noise;
+        x.push(xi);
+        y.push(yi);
+    }
+    return [x, y];
+}
+
+function updatePlot() {
+    let slope = parseFloat(document.getElementById('slope').value);
+    let intercept = parseFloat(document.getElementById('intercept').value);
+    let numPoints = parseInt(document.getElementById('num-points').value);
+    let noise = parseFloat(document.getElementById('noise').value) * 10;
+
+    let [x, y] = generateData(slope, intercept, numPoints, noise);
+
+    let trace1 = {
+        x: x,
+        y: y,
+        mode: 'markers',
+        type: 'scatter',
+        name: 'Data'
+    };
+
+    let x_line = [-100, 100];
+    let y_line = x_line.map(x => slope * x + intercept);
+
+    let trace2 = {
+        x: x_line,
+        y: y_line,
+        mode: 'lines',
+        type: 'scatter',
+        name: 'Regression Line',
+        line: {color: 'red'}
+    };
+
+    let layout = {
+        title: 'Simple Linear Regression',
+        xaxis: {title: 'X', range: [-100, 100]},
+        yaxis: {title: 'Y'},
+        showlegend: true
+    };
+
+    Plotly.newPlot('plot', [trace1, trace2], layout);
+}
+
+// Initial plot
+updatePlot();
+</script>
+</body>
+</html>
